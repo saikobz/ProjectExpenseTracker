@@ -241,6 +241,26 @@ curl "http://localhost:3001/api/dashboard/summary?month=5&year=2026" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
+### Budgets (Phase 5)
+
+All budget endpoints require `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/budgets` | List budgets with spent/usage (`?month=5&year=2026`) |
+| POST | `/api/budgets` | Create budget (expense category only) |
+| PATCH | `/api/budgets/:id` | Update budget |
+| DELETE | `/api/budgets/:id` | Delete budget |
+
+Status: `normal` (&lt;80%), `warning` (80–100%), `over_budget` (&gt;100%). Spent is calculated from real expense transactions.
+
+```bash
+curl -X POST http://localhost:3001/api/budgets \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"categoryId":"CATEGORY_UUID","month":5,"year":2026,"amount":5000}'
+```
+
 ## Development roadmap
 
 | Phase | Scope |
@@ -249,8 +269,9 @@ curl "http://localhost:3001/api/dashboard/summary?month=5&year=2026" \
 | **1** | Authentication (register, login, JWT, protected routes) |
 | **2** | Categories (CRUD, defaults, `/categories` UI) |
 | **3** | Transactions (CRUD, filters, `/transactions` UI) |
-| **4** (current) | Dashboard (summary, charts, recent transactions) |
-| **5+** | Budgets, reports |
+| **4** | Dashboard (summary, charts, recent transactions) |
+| **5** (current) | Budgets (monthly limits, usage tracking) |
+| **6+** | Reports |
 
 See [Plan.md](./Plan.md) for the full specification.
 
