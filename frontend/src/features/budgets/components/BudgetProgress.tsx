@@ -24,9 +24,9 @@ export function BudgetProgress({ spent, amount, usagePercentage, status }: Budge
         <div
           className={cn(
             'h-full rounded-full transition-all',
-            status === 'over_budget' && 'bg-destructive',
-            status === 'warning' && 'bg-yellow-500',
-            status === 'normal' && 'bg-primary',
+            status === 'over_budget' && 'bg-danger',
+            status === 'warning' && 'bg-warning',
+            status === 'normal' && 'bg-success',
           )}
           style={{ width: `${width}%` }}
         />

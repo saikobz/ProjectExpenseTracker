@@ -1,17 +1,15 @@
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ChartCard } from '@/components/common/ChartCard'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { EmptyState } from '@/components/common/EmptyState'
+import { ErrorState } from '@/components/common/ErrorState'
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton'
+import { MoneyAmount } from '@/components/common/MoneyAmount'
+import { PageHeader } from '@/components/common/PageHeader'
+import { PageHeaderButton } from '@/components/common/PageHeaderButton'
+import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -34,11 +32,6 @@ import {
 } from '@/features/transactions/hooks/useTransactions'
 import { getTransactionErrorMessage } from '@/services/transaction.service'
 import type { CategoryType, Transaction, TransactionListParams } from '@/types/transaction'
-
-function formatAmount(amount: number, type: CategoryType) {
-  const formatted = amount.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  return type === 'income' ? `+${formatted}` : `-${formatted}`
-}
 
 const defaultFilters: TransactionListParams = {
   page: 1,
@@ -78,7 +71,7 @@ export function TransactionsPage() {
     [filters],
   )
 
-  const { data, isLoading, isError } = useTransactions(listParams)
+  const { data, isLoading, isError, refetch } = useTransactions(listParams)
   const { data: allCategories = [] } = useCategories()
   const createMutation = useCreateTransaction()
   const updateMutation = useUpdateTransaction()
@@ -159,32 +152,29 @@ export function TransactionsPage() {
   const totalPages = data?.totalPages ?? 1
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Transactions</h1>
-          <p className="text-sm text-muted-foreground">
-            Record and manage your income and expenses.
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setFormError(null)
-            setFormOpen(true)
-          }}
-        >
-          <Plus className="size-4" />
-          Add transaction
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Transactions"
+        subtitle="Record and manage your income and expenses."
+        actions={
+          <PageHeaderButton
+            onClick={() => {
+              setEditing(null)
+              setFormError(null)
+              setFormOpen(true)
+            }}
+          >
+            <Plus className="size-4" />
+            Add transaction
+          </PageHeaderButton>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Filters</CardTitle>
-          <CardDescription>Filter, search, and sort your transactions.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <ChartCard
+        title="Filters"
+        description="Filter, search, and sort your transactions."
+        contentClassName="space-y-4"
+      >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-2">
               <Label>Type</Label>
@@ -273,7 +263,9 @@ export function TransactionsPage() {
                       sortOrder: d.sortOrder === 'asc' ? 'desc' : 'asc',
                     }))
                   }
-                  title={draft.sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                  aria-label={
+                    draft.sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'
+                  }
                 >
                   {draft.sortOrder === 'asc' ? (
                     <ArrowUp className="size-4" />
@@ -293,72 +285,78 @@ export function TransactionsPage() {
               Clear
             </Button>
           </div>
-        </CardContent>
-      </Card>
+      </ChartCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Transaction list</CardTitle>
-          <CardDescription>
-            {data ? `${data.total} transaction(s)` : 'Loading...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isLoading && (
-            <p className="text-sm text-muted-foreground">Loading transactions...</p>
-          )}
+      <ChartCard
+        title="Transaction list"
+        description={data ? `${data.total} transaction(s)` : 'Loading...'}
+        contentClassName="space-y-4"
+      >
+          {isLoading && <LoadingSkeleton preset="table" />}
           {isError && (
-            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Failed to load transactions.
-            </p>
+            <ErrorState
+              message="Failed to load transactions."
+              onRetry={() => void refetch()}
+            />
           )}
           {!isLoading && !isError && items.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No transactions found. Add your first transaction or adjust filters.
-            </p>
+            <EmptyState
+              title="No transactions found"
+              description="Add your first transaction or adjust your filters."
+              actionLabel="Add transaction"
+              onAction={() => {
+                setEditing(null)
+                setFormError(null)
+                setFormOpen(true)
+              }}
+            />
           )}
           {!isLoading && !isError && items.length > 0 && (
-            <div className="overflow-x-auto rounded-lg border">
+            <>
+            <div className="hidden overflow-x-auto rounded-lg border border-border/60 md:block">
               <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b bg-muted/50">
+                <thead className="sticky top-0 z-10 border-b bg-muted/80 backdrop-blur">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Date</th>
-                    <th className="px-4 py-3 font-medium">Description</th>
-                    <th className="px-4 py-3 font-medium">Category</th>
-                    <th className="px-4 py-3 font-medium">Type</th>
-                    <th className="px-4 py-3 font-medium text-right">Amount</th>
-                    <th className="px-4 py-3 font-medium text-right">Actions</th>
+                    <th className="px-4 py-3 font-medium" scope="col">Date</th>
+                    <th className="px-4 py-3 font-medium" scope="col">Description</th>
+                    <th className="px-4 py-3 font-medium" scope="col">Category</th>
+                    <th className="px-4 py-3 font-medium" scope="col">Type</th>
+                    <th className="px-4 py-3 font-medium text-right" scope="col">Amount</th>
+                    <th className="px-4 py-3 font-medium text-right" scope="col">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
-                  {items.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-muted/30">
+                <tbody className="divide-y divide-border/60">
+                  {items.map((tx, i) => (
+                    <tr
+                      key={tx.id}
+                      className={i % 2 === 0 ? 'bg-background' : 'bg-muted/20 hover:bg-muted/40'}
+                    >
                       <td className="px-4 py-3 whitespace-nowrap">{tx.transactionDate}</td>
-                      <td className="px-4 py-3 max-w-[200px] truncate">
+                      <td className="max-w-[200px] truncate px-4 py-3">
                         {tx.description || '—'}
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center gap-2">
                           <span
-                            className="size-2 rounded-full"
+                            className="size-2.5 shrink-0 rounded-full ring-1 ring-border/60"
                             style={{ backgroundColor: tx.category.color ?? '#6B7280' }}
+                            aria-hidden
                           />
                           {tx.category.name}
                         </span>
                       </td>
-                      <td className="px-4 py-3 capitalize">{tx.type}</td>
-                      <td
-                        className={`px-4 py-3 text-right font-medium tabular-nums ${
-                          tx.type === 'income' ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {formatAmount(tx.amount, tx.type)}
+                      <td className="px-4 py-3">
+                        <StatusBadge kind="transaction" type={tx.type} />
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium">
+                        <MoneyAmount amount={tx.amount} type={tx.type} showSign />
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
+                            aria-label={`Edit ${tx.description ?? 'transaction'}`}
                             onClick={() => {
                               setEditing(tx)
                               setFormError(null)
@@ -371,6 +369,7 @@ export function TransactionsPage() {
                             variant="ghost"
                             size="icon"
                             className="text-destructive"
+                            aria-label={`Delete ${tx.description ?? 'transaction'}`}
                             onClick={() => setDeleting(tx)}
                           >
                             <Trash2 className="size-4" />
@@ -382,6 +381,43 @@ export function TransactionsPage() {
                 </tbody>
               </table>
             </div>
+
+            <div className="space-y-3 md:hidden">
+              {items.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="rounded-lg border border-border/60 bg-card p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{tx.description || 'No description'}</p>
+                      <p className="text-xs text-muted-foreground">{tx.transactionDate}</p>
+                    </div>
+                    <MoneyAmount amount={tx.amount} type={tx.type} showSign className="text-metric text-base" />
+                  </div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{tx.category.name}</span>
+                    <StatusBadge kind="transaction" type={tx.type} />
+                  </div>
+                  <div className="mt-3 flex justify-end gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditing(tx)
+                        setFormOpen(true)
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={() => setDeleting(tx)}>
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            </>
           )}
 
           {data && data.total > 0 && (
@@ -409,8 +445,7 @@ export function TransactionsPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </ChartCard>
 
       <Dialog
         open={formOpen}
@@ -440,27 +475,21 @@ export function TransactionsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete
-              {deleting?.description ? ` "${deleting.description}"` : ' this transaction'}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-white hover:bg-destructive/90"
-              onClick={() => void handleDelete()}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Delete transaction?"
+        description={
+          <>
+            This will permanently delete
+            {deleting?.description ? ` "${deleting.description}"` : ' this transaction'}.
+          </>
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => void handleDelete()}
+      />
     </div>
   )
 }

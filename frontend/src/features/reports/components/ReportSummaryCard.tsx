@@ -1,1 +1,1 @@
-export { SummaryCard as ReportSummaryCard } from '@/components/charts/SummaryCard'
+export { SummaryCard as ReportSummaryCard } from '@/components/common/SummaryCard'

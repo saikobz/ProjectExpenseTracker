@@ -1,16 +1,11 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { EmptyState } from '@/components/common/EmptyState'
+import { ErrorState } from '@/components/common/ErrorState'
+import { LoadingSkeleton } from '@/components/common/LoadingSkeleton'
+import { PageHeader } from '@/components/common/PageHeader'
+import { PageHeaderButton } from '@/components/common/PageHeaderButton'
 import { MonthYearSelector } from '@/components/charts/MonthYearSelector'
 import {
   Dialog,
@@ -45,7 +40,7 @@ export function BudgetsPage() {
   const [deleting, setDeleting] = useState<BudgetWithUsage | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const { data: budgets = [], isLoading, isError } = useBudgets(period)
+  const { data: budgets = [], isLoading, isError, refetch } = useBudgets(period)
   const createMutation = useCreateBudget()
   const updateMutation = useUpdateBudget()
   const deleteMutation = useDeleteBudget()
@@ -86,40 +81,36 @@ export function BudgetsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
-          <p className="text-sm text-muted-foreground">
-            Set monthly spending limits by expense category.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Add budget
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        title="Budgets"
+        subtitle="Set monthly spending limits by expense category."
+        actions={
+          <>
+            <MonthYearSelector period={period} onChange={setPeriod} />
+            <PageHeaderButton onClick={openCreate}>
+              <Plus className="size-4" />
+              Add budget
+            </PageHeaderButton>
+          </>
+        }
+      />
 
-      <MonthYearSelector period={period} onChange={setPeriod} />
+      {isLoading && <LoadingSkeleton preset="budgetGrid" />}
 
-      {isLoading && (
-        <p className="text-sm text-muted-foreground">Loading budgets...</p>
-      )}
-
-      {isError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          Failed to load budgets.
-        </p>
-      )}
+      {isError && <ErrorState onRetry={() => void refetch()} />}
 
       {!isLoading && !isError && budgets.length === 0 && (
-        <p className="rounded-md border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
-          No budgets for {period.month}/{period.year}. Add a budget to track spending limits.
-        </p>
+        <EmptyState
+          title="No budgets this month"
+          description={`Create a budget for ${period.month}/${period.year} to track spending limits.`}
+          actionLabel="Add budget"
+          onAction={openCreate}
+        />
       )}
 
       {!isLoading && !isError && budgets.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {budgets.map((budget) => (
             <BudgetCard
               key={budget.id}
@@ -165,27 +156,21 @@ export function BudgetsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete budget?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Remove the budget for &quot;{deleting?.categoryName}&quot; in {deleting?.month}/
-              {deleting?.year}?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-white hover:bg-destructive/90"
-              onClick={() => void handleDelete()}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Delete budget?"
+        description={
+          <>
+            Remove the budget for &quot;{deleting?.categoryName}&quot; in {deleting?.month}/
+            {deleting?.year}?
+          </>
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => void handleDelete()}
+      />
     </div>
   )
 }

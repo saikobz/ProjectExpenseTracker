@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom'
+import { MoneyAmount } from '@/components/common/MoneyAmount'
 import { Button } from '@/components/ui/button'
 import type { RecentTransactionItem } from '@/types/dashboard'
-
-function formatAmount(amount: number, type: 'income' | 'expense') {
-  const formatted = amount.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  return type === 'income' ? `+${formatted}` : `-${formatted}`
-}
 
 type RecentTransactionsProps = {
   transactions: RecentTransactionItem[]
@@ -26,22 +22,21 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   }
 
   return (
-    <ul className="divide-y rounded-lg border">
+    <ul className="divide-y divide-border/60 rounded-lg border border-border/60">
       {transactions.map((tx) => (
-        <li key={tx.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+        <li key={tx.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm hover:bg-muted/30">
           <div className="min-w-0">
-            <p className="font-medium truncate">{tx.description || tx.category.name}</p>
+            <p className="truncate font-medium">{tx.description || tx.category.name}</p>
             <p className="text-xs text-muted-foreground">
               {tx.transactionDate} · {tx.category.name}
             </p>
           </div>
-          <span
-            className={`shrink-0 font-medium tabular-nums ${
-              tx.type === 'income' ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {formatAmount(tx.amount, tx.type)}
-          </span>
+          <MoneyAmount
+            amount={tx.amount}
+            type={tx.type}
+            showSign
+            className="shrink-0 font-medium"
+          />
         </li>
       ))}
     </ul>

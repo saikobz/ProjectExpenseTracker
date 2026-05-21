@@ -1,17 +1,8 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { PageHeaderButton } from '@/components/common/PageHeaderButton'
+import { TabbedPageChrome } from '@/components/common/TabbedPageChrome'
 import {
   Dialog,
   DialogContent,
@@ -20,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CategoryListPanel } from '@/features/categories/components/CategoryListPanel'
 import {
   CategoryForm,
   type CategoryFormValues,
@@ -33,74 +25,6 @@ import {
 import { getCategoryErrorMessage } from '@/services/category.service'
 import type { Category, CategoryType } from '@/types/category'
 
-function CategoryList({
-  categories,
-  isLoading,
-  isError,
-  onEdit,
-  onDelete,
-}: {
-  categories: Category[]
-  isLoading: boolean
-  isError: boolean
-  onEdit: (category: Category) => void
-  onDelete: (category: Category) => void
-}) {
-  if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading categories...</p>
-  }
-
-  if (isError) {
-    return (
-      <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-        Failed to load categories. Please try again.
-      </p>
-    )
-  }
-
-  if (categories.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        No categories yet. Add your first category to get started.
-      </p>
-    )
-  }
-
-  return (
-    <ul className="divide-y rounded-lg border">
-      {categories.map((category) => (
-        <li
-          key={category.id}
-          className="flex items-center justify-between gap-3 px-4 py-3"
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              className="size-3 shrink-0 rounded-full"
-              style={{ backgroundColor: category.color ?? '#6B7280' }}
-            />
-            <span className="truncate font-medium">{category.name}</span>
-          </div>
-          <div className="flex shrink-0 gap-1">
-            <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>
-              <Pencil className="size-4" />
-              <span className="sr-only">Edit</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-destructive hover:text-destructive"
-              onClick={() => onDelete(category)}
-            >
-              <Trash2 className="size-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 export function CategoriesPage() {
   const [activeTab, setActiveTab] = useState<CategoryType>('expense')
   const [formOpen, setFormOpen] = useState(false)
@@ -113,6 +37,15 @@ export function CategoriesPage() {
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
   const deleteMutation = useDeleteCategory()
+
+  const expenseCount = expenseQuery.data?.length ?? 0
+  const incomeCount = incomeQuery.data?.length ?? 0
+
+  const subtitle = useMemo(() => {
+    const total = expenseCount + incomeCount
+    if (total === 0) return 'Create categories to label income and expenses.'
+    return `${total} categories · ${expenseCount} expense · ${incomeCount} income`
+  }, [expenseCount, incomeCount])
 
   const openCreate = () => {
     setEditingCategory(null)
@@ -160,64 +93,54 @@ export function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage income and expense categories for your transactions.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Add category
-        </Button>
-      </div>
-
+    <>
       <Tabs
         value={activeTab}
         onValueChange={(v) => setActiveTab(v as CategoryType)}
+        className="w-full"
       >
-        <TabsList>
-          <TabsTrigger value="expense">Expense</TabsTrigger>
-          <TabsTrigger value="income">Income</TabsTrigger>
-        </TabsList>
+        <TabbedPageChrome
+          title="Categories"
+          subtitle={subtitle}
+          tabs={
+            <TabsList variant="segmented">
+              <TabsTrigger value="expense">Expense</TabsTrigger>
+              <TabsTrigger value="income">Income</TabsTrigger>
+            </TabsList>
+          }
+          controls={
+            <PageHeaderButton className="w-full" onClick={openCreate}>
+              <Plus className="size-4" />
+              Add category
+            </PageHeaderButton>
+          }
+        >
+          <TabsContent value="expense" className="mt-0">
+            <CategoryListPanel
+              type="expense"
+              categories={expenseQuery.data ?? []}
+              isLoading={expenseQuery.isLoading}
+              isError={expenseQuery.isError}
+              onRetry={() => void expenseQuery.refetch()}
+              onEdit={openEdit}
+              onDelete={setDeletingCategory}
+              onAdd={openCreate}
+            />
+          </TabsContent>
 
-        <TabsContent value="expense" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Expense categories</CardTitle>
-              <CardDescription>Track where your money goes.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CategoryList
-                categories={expenseQuery.data ?? []}
-                isLoading={expenseQuery.isLoading}
-                isError={expenseQuery.isError}
-                onEdit={openEdit}
-                onDelete={setDeletingCategory}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="income" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Income categories</CardTitle>
-              <CardDescription>Track where your money comes from.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CategoryList
-                categories={incomeQuery.data ?? []}
-                isLoading={incomeQuery.isLoading}
-                isError={incomeQuery.isError}
-                onEdit={openEdit}
-                onDelete={setDeletingCategory}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <TabsContent value="income" className="mt-0">
+            <CategoryListPanel
+              type="income"
+              categories={incomeQuery.data ?? []}
+              isLoading={incomeQuery.isLoading}
+              isError={incomeQuery.isError}
+              onRetry={() => void incomeQuery.refetch()}
+              onEdit={openEdit}
+              onDelete={setDeletingCategory}
+              onAdd={openCreate}
+            />
+          </TabsContent>
+        </TabbedPageChrome>
       </Tabs>
 
       <Dialog
@@ -227,7 +150,7 @@ export function CategoriesPage() {
           if (!open) setEditingCategory(null)
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{editingCategory ? 'Edit category' : 'Add category'}</DialogTitle>
             <DialogDescription>
@@ -250,32 +173,23 @@ export function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
+      <ConfirmDialog
         open={!!deletingCategory}
         onOpenChange={(open) => {
           if (!open) setDeletingCategory(null)
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete category?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete &quot;{deletingCategory?.name}&quot;. This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-white hover:bg-destructive/90"
-              onClick={() => void handleDelete()}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        title="Delete category?"
+        description={
+          <>
+            This will permanently delete &quot;{deletingCategory?.name}&quot;. Categories
+            with transactions cannot be deleted.
+          </>
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={() => void handleDelete()}
+      />
+    </>
   )
 }

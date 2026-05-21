@@ -1,98 +1,92 @@
-import { ArrowDownCircle, ArrowUpCircle, Scale, TrendingDown, TrendingUp } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowDownCircle, ArrowUpCircle, Scale, Tag, TrendingDown, TrendingUp } from 'lucide-react'
+import { ChartCard } from '@/components/common/ChartCard'
+import { MoneyAmount } from '@/components/common/MoneyAmount'
+import { SummaryCard } from '@/components/common/SummaryCard'
 import { CategoryBreakdownChart } from '@/features/reports/components/CategoryBreakdownChart'
-import { ExportCsvButton } from '@/features/reports/components/ExportCsvButton'
-import { ReportSummaryCard } from '@/features/reports/components/ReportSummaryCard'
 import { ReportTransactionTable } from '@/features/reports/components/ReportTransactionTable'
-import { getMonthDateRangeForExport } from '@/services/report.service'
-import type { MonthlyReport, MonthlyReportPeriod } from '@/types/report'
-
-function formatMoney(value: number) {
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+import { formatMoney } from '@/lib/format'
+import type { MonthlyReport } from '@/types/report'
 
 type MonthlyReportViewProps = {
   report: MonthlyReport
-  period: MonthlyReportPeriod
 }
 
-export function MonthlyReportView({ report, period }: MonthlyReportViewProps) {
-  const exportRange = getMonthDateRangeForExport(period.year, period.month)
+export function MonthlyReportView({ report }: MonthlyReportViewProps) {
   const changePositive = report.expenseChangeAmount <= 0
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap justify-end gap-2">
-        <ExportCsvButton params={exportRange} />
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <ReportSummaryCard
+        <SummaryCard
           title="Total income"
           value={formatMoney(report.totalIncome)}
           icon={ArrowUpCircle}
-          valueClassName="text-green-600"
+          valueClassName="text-success-foreground"
         />
-        <ReportSummaryCard
+        <SummaryCard
           title="Total expense"
           value={formatMoney(report.totalExpense)}
           icon={ArrowDownCircle}
-          valueClassName="text-red-600"
+          valueClassName="text-danger-foreground"
         />
-        <ReportSummaryCard
+        <SummaryCard
           title="Balance"
           value={formatMoney(report.balance)}
           icon={Scale}
-          valueClassName={report.balance >= 0 ? 'text-green-600' : 'text-red-600'}
+          valueClassName={
+            report.balance >= 0 ? 'text-success-foreground' : 'text-danger-foreground'
+          }
         />
-        <ReportSummaryCard
+        <SummaryCard
           title="Expense vs last month"
           value={`${changePositive ? '' : '+'}${formatMoney(Math.abs(report.expenseChangeAmount))}`}
           description={`${report.expenseChangePercentage >= 0 ? '+' : ''}${report.expenseChangePercentage}% (${formatMoney(report.previousMonthExpense)} prev.)`}
           icon={changePositive ? TrendingDown : TrendingUp}
-          valueClassName={changePositive ? 'text-green-600' : 'text-red-600'}
+          valueClassName={
+            changePositive ? 'text-success-foreground' : 'text-danger-foreground'
+          }
         />
       </div>
 
       {report.topExpenseCategory && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Top expense category</CardTitle>
-            <CardDescription>
-              {report.topExpenseCategory.categoryName} —{' '}
-              {formatMoney(report.topExpenseCategory.amount)}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="flex flex-col gap-4 rounded-2xl border border-border/50 bg-gradient-to-br from-danger/8 via-card to-card p-5 shadow-sm ring-1 ring-border/40">
+          <div className="flex items-start gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-danger/15">
+              <Tag className="size-5 text-danger-foreground" aria-hidden />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Top expense category</p>
+              <p className="mt-1 text-xl font-semibold tracking-tight">
+                {report.topExpenseCategory.categoryName}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Largest share of spending this period
+              </p>
+            </div>
+          </div>
+          <MoneyAmount
+            amount={report.topExpenseCategory.amount}
+            type="expense"
+            className="text-2xl font-semibold"
+          />
+        </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Income by category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CategoryBreakdownChart data={report.incomeByCategory} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Expense by category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CategoryBreakdownChart data={report.expenseByCategory} />
-          </CardContent>
-        </Card>
+        <ChartCard title="Income by category" description="Share of total income">
+          <CategoryBreakdownChart data={report.incomeByCategory} />
+        </ChartCard>
+        <ChartCard title="Expense by category" description="Share of total expense">
+          <CategoryBreakdownChart data={report.expenseByCategory} />
+        </ChartCard>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Transactions ({report.transactionCount})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ReportTransactionTable transactions={report.transactions} />
-        </CardContent>
-      </Card>
+      <ChartCard
+        title="Transactions"
+        description={`${report.transactionCount} records in this period`}
+      >
+        <ReportTransactionTable transactions={report.transactions} />
+      </ChartCard>
     </div>
   )
 }

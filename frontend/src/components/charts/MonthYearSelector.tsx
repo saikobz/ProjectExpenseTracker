@@ -1,4 +1,5 @@
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import type { DashboardPeriod } from '@/types/dashboard'
 
 const MONTHS = [
@@ -19,19 +20,34 @@ const MONTHS = [
 type MonthYearSelectorProps = {
   period: DashboardPeriod
   onChange: (period: DashboardPeriod) => void
+  /** Stacked fields for unified page panels; default is inline row */
+  layout?: 'inline' | 'stacked'
 }
 
-export function MonthYearSelector({ period, onChange }: MonthYearSelectorProps) {
+export function MonthYearSelector({
+  period,
+  onChange,
+  layout = 'inline',
+}: MonthYearSelectorProps) {
   const currentYear = new Date().getFullYear()
   const years = Array.from({ length: 6 }, (_, i) => currentYear - 2 + i)
 
   return (
-    <div className="flex flex-wrap items-end gap-4">
+    <div
+      className={
+        layout === 'stacked'
+          ? 'flex flex-col gap-3'
+          : 'flex shrink-0 flex-wrap items-end gap-3'
+      }
+    >
       <div className="space-y-2">
         <Label htmlFor="month">Month</Label>
         <select
           id="month"
-          className="flex h-9 min-w-[140px] rounded-md border border-input bg-background px-3 py-1 text-sm"
+          className={cn(
+            'flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm',
+            layout === 'stacked' ? 'w-full' : 'min-w-[140px]',
+          )}
           value={period.month}
           onChange={(e) => onChange({ ...period, month: Number(e.target.value) })}
         >
@@ -46,7 +62,10 @@ export function MonthYearSelector({ period, onChange }: MonthYearSelectorProps) 
         <Label htmlFor="year">Year</Label>
         <select
           id="year"
-          className="flex h-9 min-w-[100px] rounded-md border border-input bg-background px-3 py-1 text-sm"
+          className={cn(
+            'flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm',
+            layout === 'stacked' ? 'w-full' : 'min-w-[100px]',
+          )}
           value={period.year}
           onChange={(e) => onChange({ ...period, year: Number(e.target.value) })}
         >
