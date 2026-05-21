@@ -5,27 +5,14 @@ import type {
   MonthlyTrendItemDto,
   RecentTransactionDto,
 } from '../types/dashboard.js'
+import { decimalToNumber } from '../utils/decimal.js'
+import { formatDateOnly } from '../utils/date.js'
+import { resolveMonthYear } from '../utils/period.js'
 import type {
   DashboardMonthYearQuery,
   DashboardRecentQuery,
   DashboardYearQuery,
 } from '../validations/dashboard.validation.js'
-
-function resolveMonthYear(query: DashboardMonthYearQuery) {
-  const now = new Date()
-  return {
-    month: query.month ?? now.getUTCMonth() + 1,
-    year: query.year ?? now.getUTCFullYear(),
-  }
-}
-
-function formatDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
-
-function decimalToNumber(value: { toString(): string } | number): number {
-  return typeof value === 'number' ? value : Number(value.toString())
-}
 
 export const dashboardService = {
   async getSummary(userId: string, query: DashboardMonthYearQuery): Promise<DashboardSummaryDto> {

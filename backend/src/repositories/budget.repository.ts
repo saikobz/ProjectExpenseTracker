@@ -1,5 +1,6 @@
 import type { Budget, Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { decimalToNumber } from '../utils/decimal.js'
 import { getMonthDateRange } from './dashboard.repository.js'
 
 const categorySelect = {
@@ -16,11 +17,6 @@ export type BudgetWithCategory = Budget & {
     type: 'income' | 'expense'
     color: string | null
   }
-}
-
-function decimalToNumber(value: { toString(): string } | number | null | undefined): number {
-  if (value == null) return 0
-  return typeof value === 'number' ? value : Number(value.toString())
 }
 
 export const budgetRepository = {

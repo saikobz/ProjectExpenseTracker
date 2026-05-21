@@ -1,11 +1,7 @@
 import { z } from 'zod'
+import { dateStringSchema } from './common.validation.js'
 
 const categoryTypeSchema = z.enum(['income', 'expense'])
-
-const dateStringSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD')
-  .refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date')
 
 export const createTransactionSchema = z.object({
   type: categoryTypeSchema,

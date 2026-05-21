@@ -1,7 +1,5 @@
 import { z } from 'zod'
-
-const monthSchema = z.coerce.number().int().min(1).max(12)
-const yearSchema = z.coerce.number().int().min(2000).max(2100)
+import { monthSchema, yearSchema } from './common.validation.js'
 
 export const dashboardMonthYearQuerySchema = z.object({
   month: monthSchema.optional(),

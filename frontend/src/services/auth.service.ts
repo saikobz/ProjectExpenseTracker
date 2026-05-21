@@ -1,10 +1,6 @@
+import { getApiErrorMessage } from '@/lib/api-error'
 import { api } from '@/services/api'
-import type {
-  ApiErrorResponse,
-  AuthSuccessResponse,
-  AuthUser,
-  MeSuccessResponse,
-} from '@/types/auth'
+import type { AuthSuccessResponse, AuthUser, MeSuccessResponse } from '@/types/auth'
 
 export async function register(
   name: string,
@@ -40,15 +36,5 @@ export async function logoutApi(): Promise<void> {
 }
 
 export function getErrorMessage(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error &&
-    typeof (error as { response?: { data?: ApiErrorResponse } }).response?.data?.message ===
-      'string'
-  ) {
-    return (error as { response: { data: ApiErrorResponse } }).response.data.message
-  }
-
-  return 'Something went wrong. Please try again.'
+  return getApiErrorMessage(error)
 }

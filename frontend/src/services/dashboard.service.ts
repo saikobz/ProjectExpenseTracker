@@ -1,3 +1,4 @@
+import { getApiErrorMessage } from '@/lib/api-error'
 import { api } from '@/services/api'
 import type {
   CategoryExpenseItem,
@@ -6,7 +7,6 @@ import type {
   MonthlyTrendItem,
   RecentTransactionItem,
 } from '@/types/dashboard'
-import type { ApiErrorResponse } from '@/types/auth'
 
 type SummaryResponse = {
   success: true
@@ -60,15 +60,5 @@ export async function getRecentTransactions(limit = 5): Promise<RecentTransactio
 }
 
 export function getDashboardErrorMessage(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error &&
-    typeof (error as { response?: { data?: ApiErrorResponse } }).response?.data?.message ===
-      'string'
-  ) {
-    return (error as { response: { data: ApiErrorResponse } }).response.data.message
-  }
-
-  return 'Failed to load dashboard data.'
+  return getApiErrorMessage(error, 'Failed to load dashboard data.')
 }

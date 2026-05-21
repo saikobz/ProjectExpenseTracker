@@ -3,6 +3,7 @@ import { authRouter } from './auth.routes.js'
 import { categoryRouter } from './category.routes.js'
 import { budgetRouter } from './budget.routes.js'
 import { dashboardRouter } from './dashboard.routes.js'
+import { reportRouter } from './report.routes.js'
 import { healthRouter } from './health.routes.js'
 import { transactionRouter } from './transaction.routes.js'
 
@@ -14,3 +15,4 @@ apiRouter.use(categoryRouter)
 apiRouter.use(transactionRouter)
 apiRouter.use(budgetRouter)
 apiRouter.use(dashboardRouter)
+apiRouter.use(reportRouter)

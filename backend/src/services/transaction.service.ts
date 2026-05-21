@@ -11,14 +11,8 @@ import type {
   TransactionListQueryInput,
   UpdateTransactionInput,
 } from '../validations/transaction.validation.js'
-
-function decimalToNumber(value: { toString(): string } | number): number {
-  return typeof value === 'number' ? value : Number(value.toString())
-}
-
-function formatDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
+import { decimalToNumber } from '../utils/decimal.js'
+import { formatDateOnly } from '../utils/date.js'
 
 function toTransactionDto(transaction: TransactionWithCategory): TransactionDto {
   return {

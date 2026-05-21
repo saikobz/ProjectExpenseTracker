@@ -1,5 +1,5 @@
+import { getApiErrorMessage } from '@/lib/api-error'
 import { api } from '@/services/api'
-import type { ApiErrorResponse } from '@/types/auth'
 import type {
   Budget,
   BudgetPeriod,
@@ -38,15 +38,5 @@ export async function deleteBudget(id: string): Promise<void> {
 }
 
 export function getBudgetErrorMessage(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error &&
-    typeof (error as { response?: { data?: ApiErrorResponse } }).response?.data?.message ===
-      'string'
-  ) {
-    return (error as { response: { data: ApiErrorResponse } }).response.data.message
-  }
-
-  return 'Something went wrong. Please try again.'
+  return getApiErrorMessage(error)
 }

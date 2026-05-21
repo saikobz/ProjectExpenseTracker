@@ -1,4 +1,12 @@
-import { ArrowLeftRight, FolderOpen, LayoutDashboard, LogOut, PiggyBank, Wallet } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  FileBarChart,
+  FolderOpen,
+  LayoutDashboard,
+  LogOut,
+  PiggyBank,
+  Wallet,
+} from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -8,6 +16,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { to: '/budgets', label: 'Budgets', icon: PiggyBank },
+  { to: '/reports', label: 'Reports', icon: FileBarChart },
   { to: '/categories', label: 'Categories', icon: FolderOpen },
 ]
 

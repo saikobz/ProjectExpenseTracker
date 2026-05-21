@@ -8,6 +8,7 @@ import { TransactionsPage } from '@/pages/TransactionsPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { ReportsPage } from '@/pages/ReportsPage'
 import { GuestRoute } from '@/routes/GuestRoute'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 
@@ -28,6 +29,7 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/transactions" element={<TransactionsPage />} />
               <Route path="/budgets" element={<BudgetsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
               <Route path="/categories" element={<CategoriesPage />} />
             </Route>
           </Route>

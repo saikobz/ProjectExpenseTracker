@@ -1,45 +1,92 @@
 # MoneyMind
 
-Personal expense tracker web application — track income and expenses, manage categories and budgets, and visualize spending with dashboards and charts.
+Personal expense tracker — track income and expenses, manage categories and budgets, visualize spending with dashboards, and export reports to CSV.
+
+![Screenshots placeholder](./docs/screenshots/README.md)
+
+> Add screenshots of Dashboard, Transactions, Budgets, and Reports to `docs/screenshots/` when publishing the portfolio.
+
+## Features
+
+- JWT authentication (register, login, protected routes)
+- Custom income/expense categories with default seeds
+- Transactions with filters, search, sort, and pagination
+- Dashboard with summary cards, charts, and recent activity
+- Monthly budgets with usage tracking (`normal` / `warning` / `over_budget`)
+- Monthly and yearly reports with CSV export (UTF-8 for Thai/Excel)
+- Demo seed data for quick evaluation
 
 ## Tech stack
 
 | Layer | Technologies |
 | --- | --- |
-| Frontend | React, Vite, TypeScript, Tailwind CSS, shadcn/ui, Recharts |
-| Backend | Node.js, Express, TypeScript, Prisma, Zod |
-| Database | PostgreSQL |
-| Auth | JWT, bcrypt |
+| Frontend | React 19, Vite, TypeScript, Tailwind CSS, shadcn/ui, Recharts, TanStack Query, Sonner |
+| Backend | Node.js, Express 5, TypeScript, Prisma, Zod, JWT, bcrypt |
+| Database | PostgreSQL 16 |
+| DevOps | Docker Compose (local DB), deploy-ready for Vercel + Render/Railway + Neon/Supabase |
 
 ## Project structure
 
 ```text
 ProjectExpenseTracker/
-├── frontend/          # React SPA
-├── backend/           # Express REST API
-├── docker-compose.yml # Local PostgreSQL
-├── Plan.md            # Full product & roadmap spec
-└── README.md
+├── backend/                 # Express REST API
+│   ├── prisma/              # Schema, migrations, seed
+│   └── src/
+│       ├── controllers/
+│       ├── services/
+│       ├── repositories/
+│       ├── routes/
+│       ├── middlewares/
+│       ├── validations/
+│       └── utils/
+├── frontend/                # React SPA
+│   └── src/
+│       ├── pages/
+│       ├── features/
+│       ├── components/
+│       └── services/
+├── docker-compose.yml
+├── TESTING.md
+├── MANUAL_TEST_CHECKLIST.md
+└── Plan.md
 ```
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 20+
 - [npm](https://www.npmjs.com/) 10+
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for PostgreSQL)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (local PostgreSQL)
 
-## Quick start
+## Environment variables
 
-### 1. Clone and install dependencies
+### Backend (`backend/.env`)
+
+| Variable | Description |
+| --- | --- |
+| `NODE_ENV` | `development` \| `production` \| `test` |
+| `PORT` | API port (default `3001`) |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Min 32 characters |
+| `JWT_EXPIRES_IN` | e.g. `7d` |
+| `CLIENT_URL` | Frontend origin for CORS (e.g. `http://localhost:5173`) |
+
+Copy from `backend/.env.example`.
+
+### Frontend (`frontend/.env`)
+
+| Variable | Description |
+| --- | --- |
+| `VITE_API_URL` | Backend base URL (e.g. `http://localhost:3001`). Empty uses Vite proxy in dev. |
+
+Copy from `frontend/.env.example`.
+
+## Local setup
+
+### 1. Install dependencies
 
 ```bash
-cd ProjectExpenseTracker
-
-cd backend
-npm install
-
-cd ../frontend
-npm install
+cd backend && npm install
+cd ../frontend && npm install
 ```
 
 ### 2. Start PostgreSQL
@@ -49,94 +96,65 @@ npm install
 docker compose up -d
 ```
 
-Verify the container is healthy:
-
-```bash
-docker compose ps
-```
-
-### 3. Configure environment variables
-
-**Backend** — copy the example file and adjust if needed:
+### 3. Configure env
 
 ```bash
 cd backend
-cp .env.example .env   # Windows: copy .env.example .env
+cp .env.example .env
+
+cd ../frontend
+cp .env.example .env
 ```
 
-**Frontend** (optional for Phase 0):
-
-```bash
-cd frontend
-cp .env.example .env   # Windows: copy .env.example .env
-```
-
-Default `DATABASE_URL` matches `docker-compose.yml`:
-
-```text
-postgresql://moneymind:moneymind_secret@localhost:5432/moneymind?schema=public
-```
-
-### 4. Initialize Prisma
+### 4. Database migrate & seed
 
 ```bash
 cd backend
 npm run prisma:generate
 npm run prisma:migrate
+npm run prisma:seed
 ```
 
-This applies the `User` model and other schema migrations.
-
-### 5. Run the backend
+### 5. Run development servers
 
 ```bash
+# Terminal 1
 cd backend
 npm run dev
-```
 
-API: [http://localhost:3001](http://localhost:3001)  
-Health check: [http://localhost:3001/api/health](http://localhost:3001/api/health)
-
-Expected health response when the database is up:
-
-```json
-{
-  "status": "ok",
-  "service": "moneymind-api",
-  "timestamp": "2026-05-21T12:00:00.000Z",
-  "database": "connected"
-}
-```
-
-### 6. Run the frontend
-
-In a second terminal:
-
-```bash
+# Terminal 2
 cd frontend
 npm run dev
 ```
 
-App: [http://localhost:5173](http://localhost:5173)
+- API: http://localhost:3001/api/health
+- App: http://localhost:5173
 
-The Vite dev server proxies `/api` requests to the backend on port `3001`.
+### Demo account
+
+After seeding:
+
+| Field | Value |
+| --- | --- |
+| Email | `demo@moneymind.app` |
+| Password | `password123` |
 
 ## Scripts
 
-### Backend (`backend/`)
+### Backend
 
 | Script | Description |
 | --- | --- |
-| `npm run dev` | Start API with hot reload |
-| `npm run build` | Compile TypeScript to `dist/` |
-| `npm run start` | Run compiled production build |
+| `npm run dev` | API with hot reload |
+| `npm run build` | Compile to `dist/` |
+| `npm run start` | Production server |
 | `npm run lint` | ESLint |
-| `npm run format` | Prettier write |
-| `npm run prisma:generate` | Generate Prisma client |
-| `npm run prisma:migrate` | Run migrations (Phase 1+) |
-| `npm run prisma:studio` | Open Prisma Studio |
+| `npm test` | Vitest unit tests |
+| `npm run prisma:migrate` | Apply migrations |
+| `npm run prisma:seed` | Demo user + sample data |
+| `npm run prisma:studio` | Prisma Studio |
 
-### Frontend (`frontend/`)
+### Frontend
 
 | Script | Description |
 | --- | --- |
@@ -144,149 +162,86 @@ The Vite dev server proxies `/api` requests to the backend on port `3001`.
 | `npm run build` | Production build |
 | `npm run preview` | Preview production build |
 | `npm run lint` | ESLint |
-| `npm run format` | Prettier write |
+| `npm test` | Vitest (form validation) |
 
-## API
+## API overview
 
-### Health
+All private routes require `Authorization: Bearer <token>`.
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/` | API info |
-| GET | `/api/health` | Service and database health |
+| Area | Endpoints |
+| --- | --- |
+| Health | `GET /api/health` |
+| Auth | `POST /api/auth/register`, `login`, `GET /me`, `POST /logout` |
+| Categories | `GET/POST/PATCH/DELETE /api/categories` |
+| Transactions | `GET/POST/PATCH/DELETE /api/transactions` |
+| Dashboard | `GET /api/dashboard/summary`, `category-expenses`, `monthly-trend`, `recent-transactions` |
+| Budgets | `GET/POST/PATCH/DELETE /api/budgets` |
+| Reports | `GET /api/reports/monthly`, `yearly`, `export-csv` |
 
-### Authentication (Phase 1)
+See earlier phase sections in git history or [Plan.md](./Plan.md) for curl examples.
 
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| POST | `/api/auth/register` | No | Register a new user |
-| POST | `/api/auth/login` | No | Login and receive JWT |
-| GET | `/api/auth/me` | Bearer token | Current user profile |
-| POST | `/api/auth/logout` | Bearer token | Logout (client removes token) |
+## Testing
 
-**Register / login example:**
+- Automated: see [TESTING.md](./TESTING.md)
+- Manual: see [MANUAL_TEST_CHECKLIST.md](./MANUAL_TEST_CHECKLIST.md)
 
-```bash
-curl -X POST http://localhost:3001/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Demo User","email":"demo@example.com","password":"password123"}'
-```
+## Deployment
 
-```bash
-curl http://localhost:3001/api/auth/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
+### Database (Neon / Supabase / Railway)
 
-### Categories (Phase 2)
+1. Create a PostgreSQL instance.
+2. Copy the connection string to `DATABASE_URL` on the backend host.
 
-All category endpoints require `Authorization: Bearer <token>`.
+### Backend (Render / Railway / Fly.io)
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/categories` | List categories (`?type=expense` or `?type=income`) |
-| POST | `/api/categories` | Create category |
-| PATCH | `/api/categories/:id` | Update name/color |
-| DELETE | `/api/categories/:id` | Delete category |
+1. Connect the repo `backend/` folder (or monorepo subpath).
+2. Build: `npm install && npm run prisma:generate && npm run build`
+3. Start: `npm run start`
+4. Release command (first deploy): `npx prisma migrate deploy`
+5. Set env: `NODE_ENV=production`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `CLIENT_URL` (your frontend URL), `PORT` (often provided by host).
 
-New users receive default income and expense categories on registration.
+### Frontend (Vercel / Netlify)
 
-```bash
-curl http://localhost:3001/api/categories?type=expense \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+1. Root directory: `frontend`
+2. Build: `npm run build`
+3. Output: `dist`
+4. Env: `VITE_API_URL=https://your-api.example.com`
 
-curl -X POST http://localhost:3001/api/categories \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Coffee","type":"expense","color":"#8B5CF6"}'
-```
+### Post-deploy smoke test
 
-### Transactions (Phase 3)
-
-All transaction endpoints require `Authorization: Bearer <token>`.
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/transactions` | List with filters, search, sort, pagination |
-| GET | `/api/transactions/:id` | Transaction detail |
-| POST | `/api/transactions` | Create transaction |
-| PATCH | `/api/transactions/:id` | Update transaction |
-| DELETE | `/api/transactions/:id` | Delete transaction |
-
-**List example:**
-
-```text
-GET /api/transactions?type=expense&from=2026-05-01&to=2026-05-31&page=1&limit=10&search=coffee&sortBy=date&sortOrder=desc
-```
-
-```bash
-curl -X POST http://localhost:3001/api/transactions \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"type":"expense","categoryId":"CATEGORY_UUID","amount":120,"description":"Lunch","transactionDate":"2026-05-21","paymentMethod":"cash"}'
-```
-
-### Dashboard (Phase 4)
-
-All dashboard endpoints require `Authorization: Bearer <token>`.
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/dashboard/summary` | Monthly totals (`?month=5&year=2026`) |
-| GET | `/api/dashboard/category-expenses` | Expense breakdown by category |
-| GET | `/api/dashboard/monthly-trend` | 12-month income vs expense (`?year=2026`) |
-| GET | `/api/dashboard/recent-transactions` | Latest transactions (`?limit=5`) |
-
-```bash
-curl "http://localhost:3001/api/dashboard/summary?month=5&year=2026" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-### Budgets (Phase 5)
-
-All budget endpoints require `Authorization: Bearer <token>`.
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/api/budgets` | List budgets with spent/usage (`?month=5&year=2026`) |
-| POST | `/api/budgets` | Create budget (expense category only) |
-| PATCH | `/api/budgets/:id` | Update budget |
-| DELETE | `/api/budgets/:id` | Delete budget |
-
-Status: `normal` (&lt;80%), `warning` (80–100%), `over_budget` (&gt;100%). Spent is calculated from real expense transactions.
-
-```bash
-curl -X POST http://localhost:3001/api/budgets \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"categoryId":"CATEGORY_UUID","month":5,"year":2026,"amount":5000}'
-```
+1. `GET https://your-api.example.com/api/health` → `database: connected`
+2. Login with demo account (re-run seed on production DB if needed)
+3. Open dashboard and export CSV
 
 ## Development roadmap
 
 | Phase | Scope |
 | --- | --- |
-| **0** | Project setup, tooling, health check |
-| **1** | Authentication (register, login, JWT, protected routes) |
-| **2** | Categories (CRUD, defaults, `/categories` UI) |
-| **3** | Transactions (CRUD, filters, `/transactions` UI) |
-| **4** | Dashboard (summary, charts, recent transactions) |
-| **5** (current) | Budgets (monthly limits, usage tracking) |
-| **6+** | Reports |
+| 0–6 | Setup through reports & CSV export |
+| **7** (current) | Testing, refactoring, seed, docs, deployment readiness |
 
-See [Plan.md](./Plan.md) for the full specification.
+## Future improvements
+
+- Rate limiting and security headers (Helmet)
+- E2E tests (Playwright)
+- Multi-currency support
+- Recurring transactions
+- Email/password reset
+
+## Known limitations
+
+- Logout is client-side only (JWT is stateless)
+- No rate limiting on auth endpoints
+- CSV export optimized for Excel UTF-8 (BOM); other tools may differ
+- Single currency (no FX)
 
 ## Stopping services
 
 ```bash
 docker compose down
-```
-
-To remove database data:
-
-```bash
-docker compose down -v
+# Remove DB volume: docker compose down -v
 ```
 
 ## License
 
-Private / portfolio project — add a license when you publish the repository.
+Private / portfolio project.

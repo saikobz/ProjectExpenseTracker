@@ -1,38 +1,15 @@
 import { AppError } from '../middlewares/error.middleware.js'
 import { categoryRepository } from '../repositories/category.repository.js'
 import { budgetRepository } from '../repositories/budget.repository.js'
-import type { BudgetDto, BudgetStatus, BudgetWithUsageDto } from '../types/budget.js'
+import type { BudgetDto, BudgetWithUsageDto } from '../types/budget.js'
+import { computeBudgetUsage } from '../utils/budget.js'
+import { decimalToNumber } from '../utils/decimal.js'
+import { resolveMonthYear } from '../utils/period.js'
 import type {
   BudgetListQuery,
   CreateBudgetInput,
   UpdateBudgetInput,
 } from '../validations/budget.validation.js'
-
-function resolveMonthYear(query: BudgetListQuery) {
-  const now = new Date()
-  return {
-    month: query.month ?? now.getUTCMonth() + 1,
-    year: query.year ?? now.getUTCFullYear(),
-  }
-}
-
-function decimalToNumber(value: { toString(): string } | number): number {
-  return typeof value === 'number' ? value : Number(value.toString())
-}
-
-function computeUsage(spent: number, amount: number) {
-  const usagePercentage = amount > 0 ? Math.round((spent / amount) * 1000) / 10 : 0
-  const remaining = Math.round((amount - spent) * 100) / 100
-
-  let status: BudgetStatus = 'normal'
-  if (usagePercentage > 100) {
-    status = 'over_budget'
-  } else if (usagePercentage >= 80) {
-    status = 'warning'
-  }
-
-  return { usagePercentage, remaining, status }
-}
 
 function toBudgetWithUsage(
   budget: {
@@ -46,7 +23,7 @@ function toBudgetWithUsage(
   spent: number,
 ): BudgetWithUsageDto {
   const amount = decimalToNumber(budget.amount)
-  const { usagePercentage, remaining, status } = computeUsage(spent, amount)
+  const { usagePercentage, remaining, status } = computeBudgetUsage(spent, amount)
 
   return {
     id: budget.id,

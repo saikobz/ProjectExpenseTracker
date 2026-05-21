@@ -41,6 +41,8 @@ model Category {
   budgets      Budget[]
 
   @@unique([userId, name, type])
+  @@index([userId])
+  @@index([userId, type])
   @@map("categories")
 }
 
