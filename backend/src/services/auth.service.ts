@@ -1,4 +1,5 @@
 import { AppError } from '../middlewares/error.middleware.js'
+import { categoryService } from './category.service.js'
 import { userRepository } from '../repositories/user.repository.js'
 import type { SafeUser } from '../types/auth.js'
 import { signToken } from '../utils/jwt.js'
@@ -27,6 +28,7 @@ export const authService = {
 
     const passwordHash = await hashPassword(input.password)
     const user = await userRepository.create({ ...input, passwordHash })
+    await categoryService.seedDefaultsForUser(user.id)
 
     return buildAuthResult(toSafeUser(user))
   },

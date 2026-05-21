@@ -177,13 +177,36 @@ curl http://localhost:3001/api/auth/me \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
+### Categories (Phase 2)
+
+All category endpoints require `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/categories` | List categories (`?type=expense` or `?type=income`) |
+| POST | `/api/categories` | Create category |
+| PATCH | `/api/categories/:id` | Update name/color |
+| DELETE | `/api/categories/:id` | Delete category |
+
+New users receive default income and expense categories on registration.
+
+```bash
+curl http://localhost:3001/api/categories?type=expense \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+curl -X POST http://localhost:3001/api/categories \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Coffee","type":"expense","color":"#8B5CF6"}'
+```
+
 ## Development roadmap
 
 | Phase | Scope |
 | --- | --- |
 | **0** | Project setup, tooling, health check |
-| **1** (current) | Authentication (register, login, JWT, protected routes) |
-| **2** | Categories |
+| **1** | Authentication (register, login, JWT, protected routes) |
+| **2** (current) | Categories (CRUD, defaults, `/categories` UI) |
 | **3+** | Transactions, dashboard, budgets, reports |
 
 See [Plan.md](./Plan.md) for the full specification.

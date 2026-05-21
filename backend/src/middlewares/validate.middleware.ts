@@ -16,3 +16,18 @@ export function validateBody<T extends z.ZodType>(schema: T) {
     next()
   }
 }
+
+export function validateQuery<T extends z.ZodType>(schema: T) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.query)
+
+    if (!result.success) {
+      const message = result.error.issues[0]?.message ?? 'Validation failed'
+      next(new AppError(400, message))
+      return
+    }
+
+    res.locals.validatedQuery = result.data as Record<string, unknown>
+    next()
+  }
+}

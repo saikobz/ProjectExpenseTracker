@@ -5,6 +5,10 @@ declare global {
     interface Request {
       user?: SafeUser
     }
+
+    interface Locals {
+      validatedQuery?: Record<string, unknown>
+    }
   }
 }
 
