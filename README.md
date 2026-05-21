@@ -225,6 +225,22 @@ curl -X POST http://localhost:3001/api/transactions \
   -d '{"type":"expense","categoryId":"CATEGORY_UUID","amount":120,"description":"Lunch","transactionDate":"2026-05-21","paymentMethod":"cash"}'
 ```
 
+### Dashboard (Phase 4)
+
+All dashboard endpoints require `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/dashboard/summary` | Monthly totals (`?month=5&year=2026`) |
+| GET | `/api/dashboard/category-expenses` | Expense breakdown by category |
+| GET | `/api/dashboard/monthly-trend` | 12-month income vs expense (`?year=2026`) |
+| GET | `/api/dashboard/recent-transactions` | Latest transactions (`?limit=5`) |
+
+```bash
+curl "http://localhost:3001/api/dashboard/summary?month=5&year=2026" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
 ## Development roadmap
 
 | Phase | Scope |
@@ -232,8 +248,9 @@ curl -X POST http://localhost:3001/api/transactions \
 | **0** | Project setup, tooling, health check |
 | **1** | Authentication (register, login, JWT, protected routes) |
 | **2** | Categories (CRUD, defaults, `/categories` UI) |
-| **3** (current) | Transactions (CRUD, filters, `/transactions` UI) |
-| **4+** | Dashboard, budgets, reports |
+| **3** | Transactions (CRUD, filters, `/transactions` UI) |
+| **4** (current) | Dashboard (summary, charts, recent transactions) |
+| **5+** | Budgets, reports |
 
 See [Plan.md](./Plan.md) for the full specification.
 
