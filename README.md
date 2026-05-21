@@ -200,14 +200,40 @@ curl -X POST http://localhost:3001/api/categories \
   -d '{"name":"Coffee","type":"expense","color":"#8B5CF6"}'
 ```
 
+### Transactions (Phase 3)
+
+All transaction endpoints require `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/transactions` | List with filters, search, sort, pagination |
+| GET | `/api/transactions/:id` | Transaction detail |
+| POST | `/api/transactions` | Create transaction |
+| PATCH | `/api/transactions/:id` | Update transaction |
+| DELETE | `/api/transactions/:id` | Delete transaction |
+
+**List example:**
+
+```text
+GET /api/transactions?type=expense&from=2026-05-01&to=2026-05-31&page=1&limit=10&search=coffee&sortBy=date&sortOrder=desc
+```
+
+```bash
+curl -X POST http://localhost:3001/api/transactions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"expense","categoryId":"CATEGORY_UUID","amount":120,"description":"Lunch","transactionDate":"2026-05-21","paymentMethod":"cash"}'
+```
+
 ## Development roadmap
 
 | Phase | Scope |
 | --- | --- |
 | **0** | Project setup, tooling, health check |
 | **1** | Authentication (register, login, JWT, protected routes) |
-| **2** (current) | Categories (CRUD, defaults, `/categories` UI) |
-| **3+** | Transactions, dashboard, budgets, reports |
+| **2** | Categories (CRUD, defaults, `/categories` UI) |
+| **3** (current) | Transactions (CRUD, filters, `/transactions` UI) |
+| **4+** | Dashboard, budgets, reports |
 
 See [Plan.md](./Plan.md) for the full specification.
 

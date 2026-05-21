@@ -1,4 +1,4 @@
-import { FolderOpen, LayoutDashboard, LogOut, Wallet } from 'lucide-react'
+import { ArrowLeftRight, FolderOpen, LayoutDashboard, LogOut, Wallet } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth/useAuth'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
   { to: '/categories', label: 'Categories', icon: FolderOpen },
 ]
 

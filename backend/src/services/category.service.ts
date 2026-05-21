@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { ALL_DEFAULT_CATEGORIES } from '../constants/defaultCategories.js'
 import { AppError } from '../middlewares/error.middleware.js'
 import { categoryRepository } from '../repositories/category.repository.js'
@@ -98,7 +99,19 @@ export const categoryService = {
       throw new AppError(404, 'Category not found')
     }
 
-    // Future: block delete when transactions reference this category
-    await categoryRepository.delete(categoryId)
+    try {
+      await categoryRepository.delete(categoryId)
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        (error.code === 'P2003' || error.code === 'P2014')
+      ) {
+        throw new AppError(
+          409,
+          'Cannot delete category that has transactions. Remove or reassign transactions first.',
+        )
+      }
+      throw error
+    }
   },
 }
