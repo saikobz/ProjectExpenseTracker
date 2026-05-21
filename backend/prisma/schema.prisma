@@ -1,4 +1,4 @@
-// MoneyMind — Prisma schema (models added in later phases)
+// MoneyMind — Prisma schema
 
 generator client {
   provider = "prisma-client-js"
@@ -7,4 +7,15 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 }

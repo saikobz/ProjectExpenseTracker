@@ -9,7 +9,7 @@ Personal expense tracker web application — track income and expenses, manage c
 | Frontend | React, Vite, TypeScript, Tailwind CSS, shadcn/ui, Recharts |
 | Backend | Node.js, Express, TypeScript, Prisma, Zod |
 | Database | PostgreSQL |
-| Auth (Phase 1+) | JWT, bcrypt |
+| Auth | JWT, bcrypt |
 
 ## Project structure
 
@@ -82,9 +82,10 @@ postgresql://moneymind:moneymind_secret@localhost:5432/moneymind?schema=public
 ```bash
 cd backend
 npm run prisma:generate
+npm run prisma:migrate
 ```
 
-No migrations yet — database models are added in later phases.
+This applies the `User` model and other schema migrations.
 
 ### 5. Run the backend
 
@@ -145,19 +146,43 @@ The Vite dev server proxies `/api` requests to the backend on port `3001`.
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier write |
 
-## API (Phase 0)
+## API
+
+### Health
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | GET | `/` | API info |
 | GET | `/api/health` | Service and database health |
 
+### Authentication (Phase 1)
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | No | Register a new user |
+| POST | `/api/auth/login` | No | Login and receive JWT |
+| GET | `/api/auth/me` | Bearer token | Current user profile |
+| POST | `/api/auth/logout` | Bearer token | Logout (client removes token) |
+
+**Register / login example:**
+
+```bash
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Demo User","email":"demo@example.com","password":"password123"}'
+```
+
+```bash
+curl http://localhost:3001/api/auth/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
 ## Development roadmap
 
 | Phase | Scope |
 | --- | --- |
-| **0** (current) | Project setup, tooling, health check |
-| **1** | Authentication (register, login, JWT) |
+| **0** | Project setup, tooling, health check |
+| **1** (current) | Authentication (register, login, JWT, protected routes) |
 | **2** | Categories |
 | **3+** | Transactions, dashboard, budgets, reports |
 

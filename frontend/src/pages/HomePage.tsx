@@ -1,4 +1,5 @@
 import { Wallet } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -7,8 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useAuth } from '@/features/auth/useAuth'
 
 export function HomePage() {
+  const { isAuthenticated } = useAuth()
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="border-b">
@@ -21,7 +25,7 @@ export function HomePage() {
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-16">
         <div className="mx-auto max-w-2xl space-y-8 text-center">
           <div className="space-y-3">
-            <p className="text-sm font-medium text-primary">Phase 0 — Project setup</p>
+            <p className="text-sm font-medium text-primary">Personal finance, simplified</p>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
               Personal expense tracker
             </h1>
@@ -33,24 +37,26 @@ export function HomePage() {
 
           <Card className="text-left">
             <CardHeader>
-              <CardTitle>Development status</CardTitle>
+              <CardTitle>Get started</CardTitle>
               <CardDescription>
-                Frontend, backend, PostgreSQL, and Prisma are configured. Authentication starts in
-                Phase 1.
+                Create an account or sign in to access your personal dashboard.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
-                <li>React + Vite + TypeScript + Tailwind + shadcn/ui</li>
-                <li>Express API with health check at /api/health</li>
-                <li>PostgreSQL via Docker Compose</li>
-              </ul>
-              <div className="flex flex-wrap gap-2">
-                <Button disabled>Sign in (Phase 1)</Button>
-                <Button variant="outline" disabled>
-                  Register (Phase 1)
-                </Button>
-              </div>
+            <CardContent className="flex flex-wrap gap-2">
+              {isAuthenticated ? (
+                <Link to="/dashboard">
+                  <Button>Go to dashboard</Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button>Sign in</Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button variant="outline">Register</Button>
+                  </Link>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
